@@ -2,11 +2,22 @@
 <html lang="ru" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Подготовка — удобное приложение для подготовки к зачётам: изучение ответов, прогресс и мотивация." />
     <meta name="theme-color" content="#4f6ef7" />
     <title>Подготовка — готовимся к зачёту</title>
+
+    <!-- PWA / установка как приложение -->
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+
+    <!-- iOS: добавление на домашний экран как приложение -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Подготовка" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+
     <link rel="stylesheet" href="assets/styles.css" />
   </head>
   <body>
@@ -22,5 +33,16 @@
 
     <!-- 3. Приложение -->
     <script src="assets/app.js"></script>
+
+    <!-- 4. Service worker — офлайн-режим (работает только по http/https, не на file://) -->
+    <script>
+      if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("sw.js").catch(function (e) {
+            console.warn("SW не зарегистрирован:", e);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
