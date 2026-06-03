@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Настройки — Подготовка</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        font: 14px/1.55 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+        max-width: 620px; margin: 0 auto; padding: 28px 22px;
+        background: #f6f7fb; color: #1f2330;
+      }
+      @media (prefers-color-scheme: dark) {
+        body { background: #15161e; color: #e7e9f2; }
+        .card { background: #1b1d27; border-color: #2c2f3d; }
+        input, select { background: #20232f; color: #e7e9f2; border-color: #3a3e4f; }
+        .hint { color: #9aa0b4; }
+      }
+      h1 { font-size: 19px; margin: 0 0 4px; }
+      .card {
+        background: #fff; border: 1px solid #e3e6ef; border-radius: 14px;
+        padding: 18px 18px 6px; margin-top: 16px;
+      }
+      label { display: block; font-weight: 600; margin: 14px 0 5px; }
+      input, select {
+        width: 100%; padding: 9px 11px; border: 1px solid #d7dae6;
+        border-radius: 9px; font: inherit; background: #fff;
+      }
+      .hint { color: #6b7088; font-size: 12.5px; margin: 5px 0 0; }
+      .hint a { color: #4f46e5; }
+      .row { display: flex; gap: 12px; }
+      .row > div { flex: 1; }
+      .actions { display: flex; align-items: center; gap: 10px; margin: 18px 0; }
+      button {
+        padding: 9px 16px; border: none; border-radius: 9px; cursor: pointer;
+        font: 600 14px/1 inherit; background: #4f46e5; color: #fff;
+      }
+      button.secondary { background: #e9ebf4; color: #2a2e3c; }
+      @media (prefers-color-scheme: dark) {
+        button.secondary { background: #2c2f3d; color: #e7e9f2; }
+      }
+      #status { font-size: 13px; font-weight: 600; }
+      .ok { color: #16a34a; } .err { color: #dc2626; }
+      .note {
+        font-size: 12.5px; color: #6b7088; margin-top: 18px; line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎓 Подготовка — разбор вопросов</h1>
+    <p class="hint">Настройки расширения. Ключ хранится только в этом браузере.</p>
+
+    <div class="card">
+      <label for="apiKey">Claude API-ключ</label>
+      <input id="apiKey" type="password" placeholder="sk-ant-..." autocomplete="off" />
+      <p class="hint">
+        Получить ключ: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com → API Keys</a>.
+        Расходует ваш баланс Anthropic.
+      </p>
+
+      <div class="row">
+        <div>
+          <label for="model">Модель</label>
+          <select id="model">
+            <option value="claude-sonnet-4-6">Sonnet 4.6 (баланс, рекоменд.)</option>
+            <option value="claude-opus-4-8">Opus 4.8 (самый умный)</option>
+            <option value="claude-haiku-4-5-20251001">Haiku 4.5 (быстрый, дешёвый)</option>
+          </select>
+        </div>
+        <div>
+          <label for="maxTokens">Длина ответа (токены)</label>
+          <input id="maxTokens" type="number" min="300" max="4000" step="100" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="save">Сохранить</button>
+        <button id="test" class="secondary">Проверить ключ</button>
+        <span id="status"></span>
+      </div>
+    </div>
+
+    <p class="note">
+      Это учебный инструмент: он объясняет, <em>почему</em> вариант верный или
+      нет, чтобы помочь разобраться в материале. Использование во время реальных
+      экзаменов/зачётов может нарушать правила учебного заведения.
+    </p>
+
+    <script src="options.js"></script>
+  </body>
+</html>
