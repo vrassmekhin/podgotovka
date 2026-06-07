@@ -65,16 +65,36 @@
     const blocks = safe.split(/\n\s*\n/);
     return blocks
       .map((block) => {
-        const lines = block.split(/\n/);
-        const isList = lines.every((l) => /^\s*[-•]\s+/.test(l) || l.trim() === "");
-        if (isList && lines.some((l) => l.trim())) {
-          const items = lines
-            .filter((l) => l.trim())
-            .map((l) => "<li>" + l.replace(/^\s*[-•]\s+/, "") + "</li>")
-            .join("");
-          return "<ul>" + items + "</ul>";
-        }
-        return "<p>" + block.replace(/\n/g, "<br>") + "</p>";
+        // В пределах блока: строки-пункты ("- "/"• ") группируются в <ul>,
+        // остальные строки — в абзацы <p> (даже если перемешаны с заголовком).
+        const lines = block.split(/\n/).filter((l) => l.trim() !== "");
+        let html = "";
+        let para = [];
+        let list = [];
+        const flushPara = () => {
+          if (para.length) {
+            html += "<p>" + para.join("<br>") + "</p>";
+            para = [];
+          }
+        };
+        const flushList = () => {
+          if (list.length) {
+            html += "<ul>" + list.map((li) => "<li>" + li + "</li>").join("") + "</ul>";
+            list = [];
+          }
+        };
+        lines.forEach((l) => {
+          if (/^\s*[-•]\s+/.test(l)) {
+            flushPara();
+            list.push(l.replace(/^\s*[-•]\s+/, ""));
+          } else {
+            flushList();
+            para.push(l);
+          }
+        });
+        flushList();
+        flushPara();
+        return html;
       })
       .join("");
   }
