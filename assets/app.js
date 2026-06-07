@@ -9,7 +9,8 @@
   // ----------------------------- Хранилище ------------------------------
   const LS = {
     progress: "podg.progress.v1", // { [subjId]: { [qKey]: "new"|"learning"|"learned" } }
-    answers: "podg.answers.v1", // переопределения ответов: { [subjId]: { [qKey]: "текст" } }
+    answers: "podg.answers.v1", // переопределения кратких ответов: { [subjId]: { [qKey]: "текст" } }
+    fulls: "podg.fulls.v1", // переопределения развёрнутых ответов: { [subjId]: { [qKey]: "текст" } }
     userSubjects: "podg.subjects.v1", // массив пользовательских предметов
     streak: "podg.streak.v1", // { last: "YYYY-MM-DD", count: N }
     achievements: "podg.ach.v1", // { [id]: true }
@@ -90,6 +91,7 @@
   // Плоский список вопросов с применёнными переопределениями ответов.
   function flatQuestions(subject) {
     const overrides = read(LS.answers, {})[subject.id] || {};
+    const fullOverrides = read(LS.fulls, {})[subject.id] || {};
     const out = [];
     subject.tickets.forEach((t) => {
       t.questions.forEach((q) => {
@@ -99,6 +101,7 @@
           ticket: t.title,
           q: q.q,
           a: overrides[key] != null ? overrides[key] : q.a,
+          full: fullOverrides[key] != null ? fullOverrides[key] : (q.full || ""),
         });
       });
     });
@@ -135,6 +138,12 @@
     all[subjId] = all[subjId] || {};
     all[subjId][key] = text;
     write(LS.answers, all);
+  }
+  function setFull(subjId, key, text) {
+    const all = read(LS.fulls, {});
+    all[subjId] = all[subjId] || {};
+    all[subjId][key] = text;
+    write(LS.fulls, all);
   }
 
   // ------------------------------ Стрик/мотивация -----------------------
@@ -531,9 +540,33 @@
       open = !open;
       if (open) {
         body.innerHTML = "";
+        body.appendChild(el("div", { class: "level-tag" }, ["📌 Кратко — главные тезисы"]));
         body.appendChild(
           el("div", { class: "answer", html: empty ? "<p class='muted'>Ответ ещё не заполнен.</p>" : renderMarkup(item.a) })
         );
+        // уровень сложнее: развёрнутый ответ
+        if (item.full && item.full.trim()) {
+          const fullBox = el("div", { class: "full-box" }, []);
+          let fullOpen = false;
+          const toggle = el(
+            "button",
+            { class: "btn level-btn" },
+            ["🎓 Уровень сложнее: развёрнутый ответ"]
+          );
+          toggle.addEventListener("click", () => {
+            fullOpen = !fullOpen;
+            fullBox.innerHTML = "";
+            if (fullOpen) {
+              toggle.textContent = "▲ Свернуть развёрнутый ответ";
+              fullBox.appendChild(el("div", { class: "level-tag hard" }, ["🎓 Развёрнутый ответ на весь вопрос билета"]));
+              fullBox.appendChild(el("div", { class: "answer", html: renderMarkup(item.full) }));
+            } else {
+              toggle.textContent = "🎓 Уровень сложнее: развёрнутый ответ";
+            }
+          });
+          body.appendChild(toggle);
+          body.appendChild(fullBox);
+        }
         body.appendChild(
           el("div", { class: "btn-row" }, [
             el("button", { class: "btn primary", onclick: () => navigate("study", { subjectId: s.id, studyIndex: idx }) }, [
@@ -603,6 +636,7 @@
 
     const card = el("div", { class: "flashcard card" }, []);
     let revealed = false;
+    let showFull = false;
     function paintCard() {
       card.innerHTML = "";
       card.appendChild(el("div", { class: "fc-status " + status }, [statusLabel(status)]));
@@ -615,9 +649,22 @@
         );
         card.appendChild(el("p", { class: "small muted hint" }, ["Сначала попробуйте ответить сами 😉"]));
       } else {
+        card.appendChild(el("div", { class: "level-tag" }, ["📌 Кратко — главные тезисы"]));
         card.appendChild(
           el("div", { class: "answer", html: empty ? "<p class='muted'>Ответ не заполнен. Откройте редактор.</p>" : renderMarkup(item.a) })
         );
+        if (item.full && item.full.trim()) {
+          if (!showFull) {
+            card.appendChild(
+              el("button", { class: "btn level-btn", onclick: () => { showFull = true; paintCard(); } }, [
+                "🎓 Уровень сложнее: развёрнутый ответ",
+              ])
+            );
+          } else {
+            card.appendChild(el("div", { class: "level-tag hard" }, ["🎓 Развёрнутый ответ на весь вопрос билета"]));
+            card.appendChild(el("div", { class: "answer", html: renderMarkup(item.full) }));
+          }
+        }
       }
     }
     paintCard();
@@ -718,15 +765,20 @@
           "Это встроенный предмет. Вопросы менять нельзя, но вы можете заполнять и править ответы — они сохранятся в браузере.",
         ])
       );
-      // редактирование ответов встроенного предмета
+      // редактирование ответов встроенного предмета (краткий + развёрнутый)
       const qs = flatQuestions(existing);
       qs.forEach((item) => {
-        const ta = el("textarea", { class: "ta", rows: 6 }, [item.a || ""]);
+        const ta = el("textarea", { class: "ta", rows: 5 }, [item.a || ""]);
         ta.value = item.a || "";
+        const taFull = el("textarea", { class: "ta", rows: 6 }, [item.full || ""]);
+        taFull.value = item.full || "";
         wrap.appendChild(
           el("div", { class: "edit-q card" }, [
             el("label", null, [item.ticket + " — " + item.q]),
+            el("div", { class: "small muted" }, ["📌 Кратко — тезисы:"]),
             ta,
+            el("div", { class: "small muted" }, ["🎓 Развёрнутый ответ (уровень сложнее):"]),
+            taFull,
             el("div", { class: "btn-row" }, [
               el(
                 "button",
@@ -734,10 +786,11 @@
                   class: "btn primary small",
                   onclick: () => {
                     setAnswer(existing.id, item.key, ta.value);
-                    toast("Ответ сохранён ✓");
+                    setFull(existing.id, item.key, taFull.value);
+                    toast("Сохранено ✓");
                   },
                 },
-                ["Сохранить ответ"]
+                ["Сохранить"]
               ),
             ]),
           ])

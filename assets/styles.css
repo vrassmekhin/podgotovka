@@ -196,6 +196,24 @@ p { margin: .4em 0; }
 .answer li { margin: .25em 0; }
 .answer strong { color: var(--text); }
 
+/* ============================== Два уровня ответа ============================== */
+.level-tag {
+  display: inline-block; font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .03em;
+  padding: 3px 10px; border-radius: 999px; margin: 6px 0 4px;
+  background: var(--bg-soft); color: var(--muted);
+}
+.level-tag.hard { background: var(--ok-soft); color: var(--ok); }
+.level-btn {
+  margin: 10px 0 4px; border-color: var(--ok); color: var(--ok);
+  background: transparent; font-weight: 700; width: 100%; justify-content: center;
+}
+.level-btn:hover { background: var(--ok-soft); }
+.full-box:not(:empty) {
+  margin-top: 8px; padding: 12px 14px; border-radius: 12px;
+  background: var(--ok-soft); border: 1px dashed var(--ok);
+}
+
 /* ============================== Режим изучения ============================== */
 .study { max-width: 720px; }
 .study-top { margin-bottom: 16px; }
